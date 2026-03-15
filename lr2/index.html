@@ -1,1 +1,89 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Сонячна електростанція - Моніторинг</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Сонячна електростанція</h1>
+            <p>Останнє оновлення: <span id="lastUpdate">--:--:--</span></p>
+        </header>
 
+        <section class="controls">
+            <button id="updateBtn" class="btn btn-primary">Оновити дані</button>
+            <button id="autoUpdateBtn" class="btn btn-success">Автооновлення</button>
+            <span id="autoStatus" class="status-badge">Вимкнено</span>
+        </section>
+
+        <section class="extra-indicators">
+            <div class="card mini-card">
+                <h3>Час доби</h3>
+                <div id="timeOfDay" class="value">--</div>
+            </div>
+            <div class="card mini-card">
+                <h3>Робота інвертора</h3>
+                <div id="inverterStatus" class="value">--</div>
+            </div>
+            <div class="card mini-card">
+                <h3>Вироблена енергія (за день)</h3>
+                <div class="value">
+                    <span id="dailyEnergy">0.00</span> <span class="unit">кВт·год</span>
+                </div>
+            </div>
+        </section>
+
+        <main class="dashboard" id="dashboard">
+            <div class="card">
+                <h3>Сонячна радіація</h3>
+                <div class="value-wrapper">
+                    <span id="val_rad" class="big-number">0</span>
+                    <span class="unit">Вт/м²</span>
+                </div>
+                <div id="status_rad" class="status-indicator"></div>
+            </div>
+
+            <div class="card">
+                <h3>Вироблена потужність</h3>
+                <div class="value-wrapper">
+                    <span id="val_pow" class="big-number">0</span>
+                    <span class="unit">кВт</span>
+                </div>
+                <div id="status_pow" class="status-indicator"></div>
+            </div>
+
+            <div class="card">
+                <h3>Напруга DC</h3>
+                <div class="value-wrapper">
+                    <span id="val_vol" class="big-number">0</span>
+                    <span class="unit">В</span>
+                </div>
+                <div id="status_vol" class="status-indicator"></div>
+            </div>
+
+            <div class="card">
+                <h3>Температура панелей</h3>
+                <div class="value-wrapper">
+                    <span id="val_tmp" class="big-number">0</span>
+                    <span class="unit">°C</span>
+                </div>
+                <div id="status_tmp" class="status-indicator"></div>
+            </div>
+
+            <div class="card">
+                <h3>Ефективність</h3>
+                <div class="value-wrapper">
+                    <span id="val_eff" class="big-number">0</span>
+                    <span class="unit">%</span>
+                </div>
+                <div id="status_eff" class="status-indicator"></div>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
