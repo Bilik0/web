@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Реєстрація підстанцій</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Система реєстрації трансформаторних підстанцій</h1>
+        </header>
+        <main>
+            <section class="form-section">
+                <h2>Реєстрація нової підстанції</h2>
+                <form id="substationForm">
+                    <div class="form-group">
+                        <label for="name">Найменування підстанції *</label>
+                        <input type="text" id="name" name="name" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="type">Тип підстанції *</label>
+                            <select id="type" name="type" required>
+                                <option value="">Оберіть тип</option>
+                                <option value="transform">Трансформаторна</option>
+                                <option value="distribute">Розподільча</option>
+                                <option value="stepup">Підвищувальна</option>
+                                <option value="stepdown">Знижувальна</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="voltage">Клас напруги (кВ) *</label>
+                            <select id="voltage" name="voltage" required>
+                                <option value="">Оберіть клас</option>
+                                <option value="10">10 кВ</option>
+                                <option value="35">35 кВ</option>
+                                <option value="110">110 кВ</option>
+                                <option value="330">330 кВ</option>
+                                <option value="750">750 кВ</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="address">Адреса *</label>
+                        <textarea id="address" name="address" required></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="power">Потужність (МВА) *</label>
+                            <input type="number" id="power" name="power" required min="0.1" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label for="transformers">Кількість трансформаторів *</label>
+                            <input type="number" id="transformers" name="transformers" required min="1" step="1">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="year">Рік введення (1950-2025) *</label>
+                            <input type="number" id="year" name="year" required min="1950" max="2025">
+                        </div>
+                        <div class="form-group">
+                            <label for="state">Стан *</label>
+                            <select id="state" name="state" required>
+                                <option value="">Оберіть стан</option>
+                                <option value="active">В експлуатації</option>
+                                <option value="repair">В ремонті</option>
+                                <option value="decommissioned">Виведена з експлуатації</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Зареєструвати</button>
+                        <button type="reset" class="btn btn-secondary">Очистити</button>
+                    </div>
+                </form>
+            </section>
+            <section class="data-section">
+                <h2>Зареєстровані підстанції</h2>
+                <div class="filter-group">
+                    <label for="filterState">Фільтр за станом:</label>
+                    <select id="filterState">
+                        <option value="all">Всі стани</option>
+                        <option value="active">В експлуатації</option>
+                        <option value="repair">В ремонті</option>
+                        <option value="decommissioned">Виведена з експлуатації</option>
+                    </select>
+                </div>
+                <div id="substationsList" class="data-list"></div>
+            </section>
+        </main>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
