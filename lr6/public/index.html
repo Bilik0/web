@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <title>Моніторинг Електропідстанції 110/35/10 кВ</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f9; margin: 0; padding: 20px; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h1, h2 { color: #333; }
+        .form-group { margin-bottom: 15px; }
+        input, select, button { padding: 10px; width: 100%; box-sizing: border-box; margin-top: 5px; }
+        button { background-color: #0056b3; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background-color: #004494; }
+        .hidden { display: none; }
+        .card { border: 1px solid #ddd; padding: 15px; border-radius: 5px; margin-bottom: 15px; background-color: #fafafa; }
+        .log-item { font-size: 0.9em; border-bottom: 1px solid #eee; padding: 5px 0; }
+        #message { margin-top: 10px; padding: 10px; border-radius: 4px; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .success { background-color: #d4edda; color: #155724; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Електропідстанція 110/35/10 кВ</h1>
+    <div id="message" class="hidden"></div>
+
+    <div id="auth-section">
+        <div class="card">
+            <h2>Вхід / Реєстрація</h2>
+            <form id="auth-form">
+                <div class="form-group">
+                    <label>Email:</label>
+                    <input type="email" id="email" required>
+                </div>
+                <div class="form-group">
+                    <label>Пароль:</label>
+                    <input type="password" id="password" required>
+                </div>
+                <div class="form-group">
+                    <label>Роль (лише для реєстрації):</label>
+                    <select id="role">
+                        <option value="operator">Оператор (Перегляд)</option>
+                        <option value="dispatcher">Диспетчер (Управління)</option>
+                    </select>
+                </div>
+                <button type="button" onclick="login()">Увійти</button>
+                <button type="button" onclick="register()" style="background-color: #28a745; margin-top: 10px;">Зареєструватися</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="dashboard-section" class="hidden">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h2>Панель моніторингу</h2>
+            <div>
+                <span id="user-info" style="font-weight: bold; margin-right: 15px;"></span>
+                <button onclick="logout()" style="width: auto; padding: 5px 15px; background-color: #dc3545;">Вийти</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Поточні параметри:</h3>
+            <p>Напруга: <strong id="val-voltage">--</strong> кВ</p>
+            <p>Струм: <strong id="val-current">--</strong> А</p>
+            <p>Потужність: <strong id="val-power">--</strong> МВт</p>
+            <p>Режим роботи: <strong id="val-mode">--</strong></p>
+            <button onclick="fetchParameters()">Оновити дані</button>
+        </div>
+
+        <div class="card hidden" id="dispatcher-controls">
+            <h3>Управління (Диспетчер)</h3>
+            <div class="form-group">
+                <label>Змінити режим роботи:</label>
+                <select id="new-mode">
+                    <option value="normal">Нормальний (Normal)</option>
+                    <option value="maintenance">Обслуговування (Maintenance)</option>
+                    <option value="emergency">Аварійний (Emergency)</option>
+                </select>
+                <button onclick="changeMode()">Застосувати</button>
+            </div>
+            <button onclick="fetchLogs()" style="background-color: #17a2b8;">Переглянути журнал подій</button>
+            <div id="logs-container" style="margin-top: 15px; max-height: 200px; overflow-y: auto;"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentUser = null;
+
+    function showMessage(text, isError = false) {
+        const msgDiv = document.getElementById('message');
+        msgDiv.textContent = text;
+        msgDiv.className = isError ? 'error' : 'success';
+        msgDiv.style.display = 'block';
+        setTimeout(() => msgDiv.style.display = 'none', 3000);
+    }
+
+    async function checkAuth() {
+        try {
+            const res = await fetch('/auth/status');
+            const data = await res.json();
+            if (data.authenticated) {
+                currentUser = data.user;
+                showDashboard();
+            } else {
+                showAuth();
+            }
+        } catch (e) { console.error('Помилка з\'єднання'); }
+    }
+
+    async function register() {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const role = document.getElementById('role').value;
+
+        const res = await fetch('/auth/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password, role })
+        });
+        const data = await res.json();
+        
+        if (res.ok) showMessage(data.message);
+        else showMessage(data.error, true);
+    }
+
+    async function login() {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+
+        const res = await fetch('/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+            currentUser = data.user;
+            showMessage(data.message);
+            showDashboard();
+        } else {
+            showMessage(data.error, true);
+        }
+    }
+
+    async function logout() {
+        await fetch('/auth/logout', { method: 'POST' });
+        currentUser = null;
+        showAuth();
+    }
+
+    async function fetchParameters() {
+        const res = await fetch('/api/substation/parameters');
+        if (res.ok) {
+            const data = await res.json();
+            document.getElementById('val-voltage').innerText = data.voltage;
+            document.getElementById('val-current').innerText = data.current;
+            document.getElementById('val-power').innerText = data.power;
+            document.getElementById('val-mode').innerText = data.mode;
+        }
+    }
+
+    async function changeMode() {
+        const mode = document.getElementById('new-mode').value;
+        const res = await fetch('/api/substation/mode', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ mode })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            showMessage(data.message);
+            fetchParameters();
+        } else {
+            showMessage(data.error, true);
+        }
+    }
+
+    async function fetchLogs() {
+        const res = await fetch('/api/logs');
+        if (res.ok) {
+            const data = await res.json();
+            const container = document.getElementById('logs-container');
+            container.innerHTML = data.map(log => 
+                `<div class="log-item">[${new Date(log.timestamp).toLocaleTimeString()}] <b>${log.user}</b>: ${log.action}</div>`
+            ).join('');
+        }
+    }
+
+    function showDashboard() {
+        document.getElementById('auth-section').classList.add('hidden');
+        document.getElementById('dashboard-section').classList.remove('hidden');
+        document.getElementById('user-info').innerText = `${currentUser.email} (${currentUser.role})`;
+        
+        fetchParameters();
+
+        if (currentUser.role === 'dispatcher') {
+            document.getElementById('dispatcher-controls').classList.remove('hidden');
+        } else {
+            document.getElementById('dispatcher-controls').classList.add('hidden');
+        }
+    }
+
+    function showAuth() {
+        document.getElementById('auth-section').classList.remove('hidden');
+        document.getElementById('dashboard-section').classList.add('hidden');
+    }
+
+    window.onload = checkAuth;
+</script>
+</body>
+</html>
